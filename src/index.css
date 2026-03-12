@@ -6,43 +6,50 @@
 
 @layer base {
   :root {
-    --background: 0 0% 10%;
-    --foreground: 0 0% 95%;
+    /* Neutrals */
+    --background: 222 47% 7%;
+    --foreground: 210 40% 98%;
 
-    --card: 0 0% 13%;
-    --card-foreground: 0 0% 95%;
+    --card: 222 47% 9%;
+    --card-foreground: 210 40% 98%;
 
-    --popover: 0 0% 13%;
-    --popover-foreground: 0 0% 95%;
+    --popover: 222 47% 9%;
+    --popover-foreground: 210 40% 98%;
 
-    --primary: 25 95% 53%;
-    --primary-foreground: 0 0% 100%;
+    /* Brand colors */
+    --primary: 25 95% 53%; /* warm orange for CTAs */
+    --primary-foreground: 210 40% 98%;
 
-    --secondary: 0 0% 16%;
-    --secondary-foreground: 0 0% 85%;
+    --accent: 215 100% 65%; /* electric blue accent for highlights */
+    --accent-foreground: 222 47% 7%;
 
-    --muted: 0 0% 16%;
-    --muted-foreground: 0 0% 55%;
+    --secondary: 222 24% 15%;
+    --secondary-foreground: 215 20% 80%;
 
-    --accent: 0 0% 18%;
-    --accent-foreground: 0 0% 95%;
+    --muted: 222 24% 15%;
+    --muted-foreground: 215 15% 65%;
 
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 100%;
+    --destructive-foreground: 210 40% 98%;
 
-    --border: 0 0% 20%;
-    --input: 0 0% 20%;
+    --border: 222 24% 18%;
+    --input: 222 24% 18%;
     --ring: 25 95% 53%;
 
-    --radius: 0.5rem;
+    /* Radii / shape language */
+    --radius-xs: 0.375rem;
+    --radius-sm: 0.625rem;
+    --radius: 0.875rem;
+    --radius-lg: 1.25rem;
 
-    --sidebar-background: 0 0% 10%;
-    --sidebar-foreground: 0 0% 95%;
+    /* Sidebar neutrals / brand hooks */
+    --sidebar-background: 222 47% 7%;
+    --sidebar-foreground: 210 40% 98%;
     --sidebar-primary: 25 95% 53%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 0 0% 16%;
-    --sidebar-accent-foreground: 0 0% 95%;
-    --sidebar-border: 0 0% 20%;
+    --sidebar-primary-foreground: 210 40% 98%;
+    --sidebar-accent: 222 24% 15%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 222 24% 18%;
     --sidebar-ring: 25 95% 53%;
   }
 }
@@ -53,12 +60,35 @@
   }
 
   body {
-    @apply bg-background text-foreground;
-    font-family: 'Inter', sans-serif;
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    letter-spacing: 0.01em;
+    line-height: 1.6;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: 'Space Grotesk', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    letter-spacing: 0.02em;
+  }
+
+  h1 {
+    @apply text-4xl md:text-5xl font-semibold;
+    line-height: 1.1;
+  }
+
+  h2 {
+    @apply text-3xl md:text-4xl font-semibold;
+    line-height: 1.15;
+  }
+
+  h3 {
+    @apply text-2xl md:text-3xl font-semibold;
+    line-height: 1.2;
+  }
+
+  p {
+    @apply text-base md:text-lg;
+    line-height: 1.7;
   }
 }
 

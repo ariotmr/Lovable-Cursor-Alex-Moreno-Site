@@ -44,6 +44,31 @@ This document tracks the implementation of frontend improvements for the site. I
 
 ## Phase 3 – Visual Design System (Colors, Typography, Spacing)
 
+### Phase 3 – Implementation Checklist
+
+- [x] **Color palette**
+  - [x] Choose 1 primary brand color.
+  - [x] Choose 1 accent color (for highlights, small elements).
+  - [x] Choose 1–2 neutral colors for backgrounds and surfaces.
+  - [x] Define use rules (e.g. primary for CTAs, accent for tags, neutral for backgrounds).
+  - [ ] Audit existing UI elements to remove or replace “extra” colors that don’t fit the palette.
+
+- [x] **Typography**
+  - [x] Select a heading font (for titles and section headings).
+  - [x] Select a body font prioritizing readability.
+  - [x] Define font sizes and line-heights for key text styles (hero, H1–H3, body, captions).
+  - [ ] Decide alignment rules (e.g. left-align for most content, center-align only in specific sections).
+
+- [x] **Spacing and layout rhythm**
+  - [x] Define a base spacing unit (e.g. 4px or 8px).
+  - [x] Specify vertical spacing between sections and components.
+  - [x] Standardize padding for cards, buttons, and containers.
+  - [x] Decide on border radius defaults for cards, buttons, and avatars.
+
+---
+
+## Phase 3 – Visual Design System (Colors, Typography, Spacing)
+
 - [ ] **Color palette**
   - [ ] Choose 1 primary brand color.
   - [ ] Choose 1 accent color (for highlights, small elements).
