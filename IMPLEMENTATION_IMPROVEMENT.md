@@ -4,6 +4,14 @@ This document tracks the implementation of frontend improvements for the site. I
 
 ---
 
+### Changes Checklist (Implemented)
+
+- [x] **Schedule section redesign**
+  - [x] Replace dense schedule layout with a cleaner, easy-to-scan section header + content area.
+  - [x] Add a **Grid** view for weekly browsing.
+  - [x] Add a **Calendar** view with date selection and session list for that day.
+  - [x] Align “focus” chips to the design system palette (primary/accent/neutrals) instead of extra colors.
+
 ## Phase 1 – Foundations (Structure, Navigation, Narrative)
 
 - [ ] **Clarify target audience and goal**

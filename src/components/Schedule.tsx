@@ -1,7 +1,10 @@
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/hooks/use-toast";
 import { MapPin, TreePine } from "lucide-react";
+import { format, startOfToday } from "date-fns";
+import * as React from "react";
 
 type ClassSession = {
   name: string;
@@ -47,9 +50,9 @@ const schedule: Record<string, ClassSession[]> = {
 };
 
 const focusColor: Record<string, string> = {
-  Strength: "bg-primary/20 text-primary border-primary/30",
-  Conditioning: "bg-emerald-500/20 text-emerald-400 border-emerald-500/30",
-  Mobility: "bg-sky-500/20 text-sky-400 border-sky-500/30",
+  Strength: "bg-primary/15 text-primary border-primary/25",
+  Conditioning: "bg-accent/15 text-accent border-accent/25",
+  Mobility: "bg-secondary text-secondary-foreground border-border",
 };
 
 const handleBook = (name: string, day: string, time: string) => {
@@ -59,10 +62,24 @@ const handleBook = (name: string, day: string, time: string) => {
   });
 };
 
+const dayKeyFromDate = (date: Date): (typeof DAYS)[number] | null => {
+  // JS: Sun=0 ... Sat=6
+  const idx = date.getDay();
+  const map: Record<number, (typeof DAYS)[number]> = {
+    1: "Mon",
+    2: "Tue",
+    3: "Wed",
+    4: "Thu",
+    5: "Fri",
+    6: "Sat",
+  };
+  return map[idx] ?? null;
+};
+
 const ClassCard = ({ session, day }: { session: ClassSession; day: string }) => (
-  <div className="flex flex-col gap-2 rounded-lg border border-border bg-card p-3 transition-colors hover:border-primary/40">
+  <div className="flex h-[152px] flex-col gap-2 rounded-lg border border-border bg-card p-4 transition-colors hover:border-primary/40">
     <div className="flex items-start justify-between gap-2">
-      <span className="text-xs text-muted-foreground">{session.time}</span>
+      <span className="text-xs font-medium text-foreground">{session.time}</span>
       <span className="flex items-center gap-1 text-xs text-muted-foreground">
         {session.location === "Studio" ? (
           <MapPin className="h-3 w-3" />
@@ -73,7 +90,7 @@ const ClassCard = ({ session, day }: { session: ClassSession; day: string }) => 
       </span>
     </div>
 
-    <h4 className="font-heading text-sm font-semibold text-foreground leading-snug">
+    <h4 className="line-clamp-2 font-heading text-sm font-semibold leading-snug text-foreground">
       {session.name}
     </h4>
 
@@ -99,49 +116,126 @@ const ClassCard = ({ session, day }: { session: ClassSession; day: string }) => 
   </div>
 );
 
-const Schedule = () => (
-  <section id="schedule" className="py-20 sm:py-28">
-    <div className="mx-auto max-w-6xl px-4 sm:px-6">
-      <div className="mb-12 text-center">
-        <h2 className="font-heading text-3xl font-bold text-foreground sm:text-4xl">
-          Weekly Schedule
-        </h2>
-        <p className="mt-3 text-muted-foreground">
-          All sessions 55 min · Select a slot to book
-        </p>
-      </div>
+const Schedule = () => {
+  const [selectedDate, setSelectedDate] = React.useState<Date | undefined>(() => startOfToday());
 
-      {/* Desktop Grid */}
-      <div className="hidden overflow-x-auto lg:block">
-        <div className="grid min-w-[900px] grid-cols-6 gap-3">
-          {DAYS.map((day) => (
-            <div key={day} className="flex flex-col gap-3">
-              <div className="rounded-md bg-secondary py-2 text-center text-sm font-semibold text-secondary-foreground">
-                {day}
-              </div>
-              {schedule[day].map((session, i) => (
-                <ClassCard key={i} session={session} day={day} />
-              ))}
+  const selectedDayKey = selectedDate ? dayKeyFromDate(selectedDate) : null;
+  const selectedSessions = selectedDayKey ? schedule[selectedDayKey] : [];
+
+  const subtitle =
+    selectedDayKey && selectedSessions.length
+      ? `${selectedDayKey} · ${selectedSessions.length} session${selectedSessions.length === 1 ? "" : "s"}`
+      : "All sessions are 55 min · Pick a slot to book";
+
+  return (
+    <section id="schedule" className="py-20 sm:py-28">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6">
+        <Tabs defaultValue="grid" className="w-full">
+          <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+            <div className="max-w-2xl">
+              <h2 className="font-heading text-3xl font-semibold text-foreground sm:text-4xl">
+                Schedule
+              </h2>
+              <p className="mt-2 text-muted-foreground">{subtitle}</p>
             </div>
-          ))}
+
+            <TabsList className="w-full md:w-auto">
+              <TabsTrigger className="flex-1 md:flex-none" value="grid">
+                Grid
+              </TabsTrigger>
+              <TabsTrigger className="flex-1 md:flex-none" value="calendar">
+                Calendar
+              </TabsTrigger>
+            </TabsList>
+          </div>
+
+          <TabsContent value="grid" className="mt-0">
+            {/* Keep it full-width and scrollable on small screens */}
+            <div className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
+              <div className="grid min-w-[960px] grid-cols-6 gap-4">
+                {DAYS.map((day) => (
+                  <div key={day} className="flex flex-col gap-3">
+                    <div className="flex items-center justify-between rounded-md border border-border bg-card px-3 py-2">
+                      <span className="text-sm font-semibold text-foreground">{day}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {schedule[day].length} slot{schedule[day].length === 1 ? "" : "s"}
+                      </span>
+                    </div>
+                    <div className="flex flex-col gap-3">
+                      {schedule[day].map((session, i) => (
+                        <ClassCard key={i} session={session} day={day} />
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="calendar" className="mt-0">
+            <div className="grid gap-6 lg:grid-cols-[360px_1fr]">
+              <div className="overflow-hidden rounded-lg border border-border bg-card">
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={setSelectedDate}
+                  fromDate={startOfToday()}
+                  disabled={(date) => {
+                    const dayKey = dayKeyFromDate(date);
+                    if (!dayKey) return true; // Sundays
+                    return schedule[dayKey].length === 0;
+                  }}
+                />
+                <div className="border-t border-border px-4 py-3 text-xs text-muted-foreground">
+                  Tip: disabled days have no sessions (Sunday).
+                </div>
+              </div>
+
+              <div className="rounded-lg border border-border bg-card p-4">
+                <div className="flex flex-wrap items-baseline justify-between gap-2">
+                  <h3 className="font-heading text-lg font-semibold text-foreground">
+                    {selectedDate ? format(selectedDate, "EEEE, MMM d") : "Select a date"}
+                  </h3>
+                  {selectedDayKey ? (
+                    <span className="text-sm text-muted-foreground">{selectedDayKey}</span>
+                  ) : (
+                    <span className="text-sm text-muted-foreground">No sessions</span>
+                  )}
+                </div>
+
+                <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                  {selectedDayKey && selectedSessions.length ? (
+                    selectedSessions.map((session, i) => (
+                      <ClassCard key={i} session={session} day={selectedDayKey} />
+                    ))
+                  ) : (
+                    <div className="rounded-md border border-border bg-background/40 p-4 text-sm text-muted-foreground sm:col-span-2">
+                      No sessions for this day. Try another date (Mon–Sat).
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </TabsContent>
+        </Tabs>
+
+        <div className="mt-10 rounded-lg border border-border bg-card p-4 sm:p-5">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div className="text-sm text-muted-foreground">
+              Want a personalized plan instead of a class slot?
+            </div>
+            <Button
+              variant="secondary"
+              className="w-full sm:w-auto"
+              onClick={() => handleBook("1:1 Intro Call", "Any day", "Choose a time")}
+            >
+              Request 1:1 intro
+            </Button>
+          </div>
         </div>
       </div>
-
-      {/* Mobile stacked */}
-      <div className="flex flex-col gap-6 lg:hidden">
-        {DAYS.map((day) => (
-          <div key={day}>
-            <h3 className="mb-3 font-heading text-lg font-semibold text-foreground">{day}</h3>
-            <div className="grid gap-3 sm:grid-cols-2">
-              {schedule[day].map((session, i) => (
-                <ClassCard key={i} session={session} day={day} />
-              ))}
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  </section>
-);
+    </section>
+  );
+};
 
 export default Schedule;
