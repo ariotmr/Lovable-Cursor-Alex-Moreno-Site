@@ -1,73 +1,81 @@
-# Welcome to your Lovable project
+# Personal Trainer Booking Web Application
 
-## Project info
+Welcome to the Personal Trainer Booking Web Application! This project is a comprehensive booking platform and dashboard designed for personal trainers and their clients. It provides a full suite of tools to manage sessions, bookings, and users, featuring dedicated dashboards for both clients and administrators.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+## 📖 What is this project?
 
-## How can I edit this code?
+This application serves as a complete platform to handle scheduling and management for a personal training business. 
 
-There are several ways of editing your application.
+### Key Features
+- **Public Pages:** Landing page, Authentication (Login/Signup).
+- **Client Dashboard:** Users and clients can view upcoming sessions, book new sessions, check their booking history, and manage their profile and avatars.
+- **Admin Dashboard:** Administrators have wide-ranging controls, including:
+  - Session and service type management (CRUD operations).
+  - Client and user role management (User, Client, Admin, Rejected, Banned).
+  - Detailed reporting and history logging for system events.
+  - Setting ongoing availability and exception dates (time-offs).
+- **Secure Architecture:** Role-Based Access Control (RBAC) and Supabase Row Level Security (RLS) ensure data privacy and integrity.
 
-**Use Lovable**
+## 💻 Tech Stack
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+This project is built using a modern, scalable web development stack.
 
-Changes made via Lovable will be committed automatically to this repo.
+### Frontend
+- **React 18** - Core UI Library
+- **Vite** - Lightning-fast build tool and development server
+- **TypeScript** - For robust type-safe code
+- **Tailwind CSS** - Utility-first CSS framework for rapid UI styling
+- **shadcn/ui** (& Radix UI Primitives) - Accessible, customizable, and unstyled UI components
+- **React Router** - For seamless, role-based client-side routing
+- **React Query** - For intelligent server data fetching and caching
+- **React Hook Form & Zod** - For robust form handling, schema definition, and validation
+- **Lucide React** - For beautiful, lightweight iconography
 
-**Use your preferred IDE**
+### Backend (BaaS)
+- **Supabase** - An open-source ecosystem providing:
+  - **PostgreSQL Database**: Relational database for core data schemas (`profiles`, `sessions`, `bookings`, `history_logs`, etc.).
+  - **Authentication**: Secure email/password and role-based auth synced with Postgres via triggers.
+  - **Storage Buckets**: For media such as avatars and session images.
+  - **Edge Functions / Triggered Webhooks**: For automated server-side logic (e.g., auto-promoting users to clients upon first booking).
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+## 🚀 Getting Started
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+If you want to contribute to the code or run the project locally, follow these instructions:
 
-Follow these steps:
+### Prerequisites
+- Node.js (v18+)
+- npm, yarn, or pnpm
+- A Supabase account and project to connect to.
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+### Installation
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+1. **Clone the repository:**
+   ```sh
+   git clone <YOUR_GIT_URL>
+   cd <YOUR_PROJECT_NAME>
+   ```
 
-# Step 3: Install the necessary dependencies.
-npm i
+2. **Install dependencies:**
+   ```sh
+   npm install
+   ```
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
+3. **Set up Environment Variables:**
+   You will need to connect the frontend to a Supabase backend project.
+   Create a `.env` file in the root directory based on your Supabase dashboard details:
+   ```env
+   VITE_SUPABASE_URL=your_supabase_url
+   VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+   ```
 
-**Edit a file directly in GitHub**
+4. **Start the development server:**
+   ```sh
+   npm run dev
+   ```
+   The application will be available on your localhost (typically port `8080` unless specified otherwise).
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## 🛠️ Development Guidelines
 
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+- **UI Consistency:** Primarily utilize `shadcn/ui` components and Tailwind utility classes. Adhere to the styling tokens located in `index.css`.
+- **User Feedback:** Use the top-left positioned toast notifications (`sonner`) to provide immediate, non-blocking feedback after API calls and CRUD operations.
+- **Routing & Modals:** Use unique URL paths for large layouts (e.g., `/admin/sessions/edit/123`). Restrict modals and dialogs tightly to confirmations, alerts, or localized micro-edits. Check user authorization at the routing layer heavily.
