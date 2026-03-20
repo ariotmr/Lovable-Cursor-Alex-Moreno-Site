@@ -141,3 +141,31 @@ Create a wrapper that:
 ## 5. Navigation & Global State
 - **Navbar**: Dynamically show "Sign In" or "Dashboard" (pointing to `/admin` or `/user` based on role).
 - **Session Listener**: Use `supabase.auth.onAuthStateChange` in the root component to keep the UI in sync with the current user session.
+
+---
+
+## 6. Auth Profiles & Dropdown Integration
+
+### Objective
+Implement the profiles page and update the navigation bar to include a dynamic profile dropdown menu.
+
+### Sub-Tasks
+#### 1. Profile Page Creation
+- Create a new `Profile` page accessible to all user roles (user, client, admin).
+
+#### 2. Navbar Updates
+- Replace the existing generic "Sign In" / "Dashboard" button block for authenticated users.
+- Add a profile button displaying the user's profile picture.
+- If no profile picture is available, display a modern placeholder (e.g., an icon or user initials).
+- Ensure the profile button triggers a dropdown menu.
+
+#### 3. Dropdown Menu Integration
+- Add "Profile" option linking to the newly created profile page.
+- Add "Log Out" option reusing the existing logout logic without modification.
+
+### Checklist
+- [x] Create `Profile.tsx` page.
+- [x] Update Navbar component with a profile picture button for authenticated users.
+- [x] Implement dropdown menu with 'Profile' and 'Log Out' links.
+- [x] Verify profile page retrieves and displays correct data.
+- [x] Confirm logout function operates as intended.
