@@ -7,6 +7,9 @@ import { Analytics } from "@vercel/analytics/react";
 import Index from "./pages/Index.tsx";
 import Login from "./pages/Login.tsx";
 import Admin from "./pages/Admin.tsx";
+import Sessions from "./pages/admin/Sessions.tsx";
+import Clients from "./pages/admin/Clients.tsx";
+import Bookings from "./pages/admin/Bookings.tsx";
 import UserDashboard from "./pages/User.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import Profile from "./pages/Profile.tsx";
@@ -28,6 +31,30 @@ const App = () => (
             element={
               <ProtectedRoute requireAdmin>
                 <Admin />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/admin/sessions" 
+            element={
+              <ProtectedRoute requireAdmin>
+                <Sessions />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/admin/clients" 
+            element={
+              <ProtectedRoute requireAdmin>
+                <Clients />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/admin/bookings" 
+            element={
+              <ProtectedRoute requireAdmin>
+                <Bookings />
               </ProtectedRoute>
             } 
           />

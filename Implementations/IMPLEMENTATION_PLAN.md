@@ -165,3 +165,21 @@ This document outlines the step-by-step implementation plan for adding a Supabas
 ### Responsiveness & Testing
 - Mobile responsiveness check for tables (using scroll areas or card-based mobile views).
 - Final end-to-end testing of user roles to ensure a `client` cannot access `/admin` routes.
+
+---
+
+## Detailed Phases
+
+### Phase 2: Session & Category Management
+- [ ] CRUD for categories.
+- [ ] CRUD for session_types.
+- [ ] CRUD for sessions.
+- [ ] Implement Availability Rules using JSONB recurrence rules.
+- [ ] Admin UI for Session management (List, Create, Edit).
+
+### Admin UI UX Improvements
+- [ ] Implement Collapsible Sidebar.
+- [ ] Add Breadcrumbs Navigation (small text).
+- [ ] Implement Real-time Notification Center.
+- [ ] Add Trend Indicators on Summary Cards (with date range filter).
+- [ ] Add Contextual Quick Actions directly on dashboard tables.
