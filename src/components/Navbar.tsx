@@ -12,6 +12,7 @@ import {
   DropdownMenuSeparator
 } from "@/components/ui/dropdown-menu";
 import { User, LayoutDashboard, LogOut } from "lucide-react";
+import { NotificationCenter } from "./NotificationCenter";
 
 const Navbar = () => {
   const [session, setSession] = useState<any>(null);
@@ -131,6 +132,7 @@ const Navbar = () => {
         </div>
 
         <div className="flex items-center gap-4">
+          {session && <NotificationCenter />}
           {session ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
