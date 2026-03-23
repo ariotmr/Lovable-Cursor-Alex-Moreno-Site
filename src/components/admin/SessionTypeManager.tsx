@@ -7,6 +7,14 @@ import { Input } from "@/components/ui/input";
 import { Plus, Edit, Trash, X, Save } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableHead, 
+  TableHeader, 
+  TableRow 
+} from "@/components/ui/table";
 
 export const SessionTypeManager = () => {
   const { toast } = useToast();
@@ -14,7 +22,7 @@ export const SessionTypeManager = () => {
   const [isAdding, setIsAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
 
-  const [formData, setFormData] = useState({ name: "", description: "", base_price: "", category_id: "" });
+  const [formData, setFormData] = useState({ name: "", description: "", base_price: "", category_id: "", capacity: "" });
 
   const { data: categories } = useQuery({
     queryKey: ['categories'],
@@ -82,10 +90,14 @@ export const SessionTypeManager = () => {
     }
   });
 
-  const resetForm = () => setFormData({ name: "", description: "", base_price: "", category_id: "" });
+  const resetForm = () => setFormData({ name: "", description: "", base_price: "", category_id: "", capacity: "" });
 
   const handleSave = () => {
-    const payload = { ...formData, base_price: parseFloat(formData.base_price) || 0 };
+    const payload = { 
+      ...formData, 
+      base_price: parseFloat(formData.base_price) || 0,
+      capacity: parseInt(formData.capacity) || 10
+    };
     if (!payload.name || !payload.category_id) {
       toast({ title: "Missing fields", description: "Name and Category are required.", variant: "destructive" });
       return;
@@ -97,7 +109,13 @@ export const SessionTypeManager = () => {
   const startEdit = (type: any) => {
     setEditingId(type.id);
     setIsAdding(false);
-    setFormData({ name: type.name, description: type.description || "", base_price: type.base_price.toString(), category_id: type.category_id });
+    setFormData({ 
+      name: type.name, 
+      description: type.description || "", 
+      base_price: type.base_price.toString(), 
+      category_id: type.category_id,
+      capacity: type.capacity?.toString() || "" 
+    });
   };
 
   return (
@@ -127,8 +145,9 @@ export const SessionTypeManager = () => {
                 </SelectContent>
               </Select>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <Input type="number" placeholder="Base Price" className="md:col-span-1" value={formData.base_price} onChange={e => setFormData({ ...formData, base_price: e.target.value })} />
+              <Input type="number" placeholder="Default Capacity" className="md:col-span-1" value={formData.capacity} onChange={e => setFormData({ ...formData, capacity: e.target.value })} />
               <Input placeholder="Description (optional)" className="md:col-span-2" value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} />
             </div>
             <div className="flex justify-end gap-2">
@@ -143,26 +162,42 @@ export const SessionTypeManager = () => {
         {isLoading ? (
           <p className="text-muted-foreground text-sm">Loading templates...</p>
         ) : sessionTypes && sessionTypes.length > 0 ? (
-          <ul className="space-y-2">
-            {sessionTypes.map((type: any) => (
-              <li key={type.id} className="flex justify-between items-center border p-3 rounded-lg">
-                  <div>
-                    <span className="font-medium block">{type.name}</span>
-                    <span className="text-xs text-muted-foreground">
-                      Category: {type.category?.name || 'N/A'} • Price: ${type.base_price}
-                    </span>
-                  </div>
-                  <div className="flex gap-1">
-                    <Button size="icon" variant="ghost" onClick={() => startEdit(type)}>
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button size="icon" variant="ghost" className="text-destructive" onClick={() => { if(confirm("Are you sure?")) deleteMutation.mutate(type.id) }}>
-                      <Trash className="h-4 w-4" />
-                    </Button>
-                  </div>
-              </li>
-            ))}
-          </ul>
+          <div className="border rounded-md">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Template Name</TableHead>
+                  <TableHead>Category</TableHead>
+                  <TableHead>Base Price</TableHead>
+                  <TableHead>Capacity</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {sessionTypes.map((type: any) => (
+                  <TableRow key={type.id}>
+                    <TableCell className="font-medium">
+                      {type.name}
+                      {type.description && <p className="text-xs text-muted-foreground font-normal">{type.description}</p>}
+                    </TableCell>
+                    <TableCell>{type.category?.name || 'N/A'}</TableCell>
+                    <TableCell>${type.base_price}</TableCell>
+                    <TableCell>{type.capacity || 10}</TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-1">
+                        <Button size="icon" variant="ghost" onClick={() => startEdit(type)}>
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button size="icon" variant="ghost" className="text-destructive" onClick={() => { if(confirm("Are you sure?")) deleteMutation.mutate(type.id) }}>
+                          <Trash className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         ) : (
           <p className="text-muted-foreground text-sm">No templates found. Create your first one!</p>
         )}

@@ -5,9 +5,8 @@ import { toast } from "@/hooks/use-toast";
 import { MapPin, TreePine } from "lucide-react";
 import { format, startOfToday } from "date-fns";
 import * as React from "react";
-
-// (Original hardcoded data removed in favor of Supabase useQuery)
-
+import { useNavigate } from "react-router-dom";
+import { supabase } from "@/lib/supabase";
 
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
@@ -17,12 +16,7 @@ const focusColor: Record<string, string> = {
   Mobility: "bg-secondary text-secondary-foreground border-border",
 };
 
-const handleBook = (name: string, day: string, time: string) => {
-  toast({
-    title: "Demo — Booking confirmed",
-    description: `${name} · ${day} at ${time}`,
-  });
-};
+
 
 const dayKeyFromDate = (date: Date): (typeof DAYS)[number] | null => {
   // JS: Sun=0 ... Sat=6
@@ -38,7 +32,17 @@ const dayKeyFromDate = (date: Date): (typeof DAYS)[number] | null => {
   return map[idx] ?? null;
 };
 
-const ClassCard = ({ session, day }: { session: ClassSession; day: string }) => (
+type ClassSession = {
+  id: string;
+  name: string;
+  focus: "Strength" | "Conditioning" | "Mobility";
+  location: "Studio" | "Outdoor" | string;
+  time: string;
+  duration: string;
+  spots: number;
+};
+
+const ClassCard = ({ session, onBook }: { session: ClassSession; onBook: (id: string) => void }) => (
   <div className="flex h-[152px] flex-col gap-2 rounded-lg border border-border bg-card p-4 transition-colors hover:border-primary/40">
     <div className="flex items-start justify-between gap-2">
       <span className="text-xs font-medium text-foreground">{session.time}</span>
@@ -70,7 +74,7 @@ const ClassCard = ({ session, day }: { session: ClassSession; day: string }) => 
       <Button
         size="sm"
         className="h-7 px-3 text-xs font-semibold"
-        onClick={() => handleBook(session.name, day, session.time)}
+        onClick={() => onBook(session.id)}
       >
         Book
       </Button>
@@ -79,27 +83,36 @@ const ClassCard = ({ session, day }: { session: ClassSession; day: string }) => 
 );
 
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/lib/supabase";
 import { Skeleton } from "@/components/ui/skeleton";
 
-type ClassSession = {
-  name: string;
-  focus: "Strength" | "Conditioning" | "Mobility";
-  location: "Studio" | "Outdoor" | string;
-  time: string;
-  duration: string;
-  spots: number;
-};
-
 const Schedule = () => {
+  const navigate = useNavigate();
   const [selectedDate, setSelectedDate] = React.useState<Date | undefined>(() => startOfToday());
+
+  const handleBook = async (sessionId: string) => {
+    const { data: { session: authSession } } = await supabase.auth.getSession();
+    
+    if (!authSession) {
+      toast({
+        title: "Authentication Required",
+        description: "Please sign in to book a session.",
+      });
+      navigate("/login", { state: { redirectTo: "/", bookSessionId: sessionId } });
+      return;
+    }
+
+    // Redirect to user dashboard with booking intent
+    navigate("/user", { state: { bookSessionId: sessionId } });
+  };
 
   const { data: sessions, isLoading } = useQuery({
     queryKey: ['sessions_public'],
     queryFn: async () => {
+      // Use booking count to calculate real spots left
       const { data, error } = await supabase.from('sessions').select(`
         *,
-        session_types(name, category_id, categories(name))
+        session_types(name, category_id, categories(name)),
+        bookings(status)
       `).eq('is_active', true).order('start_date');
       if (error) throw error;
       return data;
@@ -111,14 +124,21 @@ const Schedule = () => {
      return sessions.filter(s => {
        const date = new Date(s.start_date);
        return dayKeyFromDate(date) === dayKey;
-     }).map(s => ({
-       name: s.title,
-       focus: (s.session_types?.categories?.name || "Strength") as any,
-       location: s.location || "Studio",
-       time: format(new Date(s.start_date), "HH:mm"),
-       duration: "55 min",
-       spots: s.max_slots
-     }));
+     }).map(s => {
+       // Only count active bookings (not cancelled) 
+       const activeBookings = s.bookings?.filter((b: any) => b.status !== 'cancelled').length || 0;
+       const spotsLeft = Math.max(0, (s.max_slots || 0) - activeBookings);
+       
+       return {
+         id: s.id,
+         name: s.title,
+         focus: (s.session_types?.categories?.name || "Strength") as any,
+         location: s.location || "Studio",
+         time: format(new Date(s.start_date), "HH:mm"),
+         duration: "55 min",
+         spots: spotsLeft
+       };
+     });
   };
 
   const selectedDayKey = selectedDate ? dayKeyFromDate(selectedDate) : null;
@@ -164,13 +184,9 @@ const Schedule = () => {
                       </span>
                     </div>
                     <div className="flex flex-col gap-3">
-                      {getSessionsForDay(day).length > 0 ? (
-                        getSessionsForDay(day).map((session, i) => (
-                           <ClassCard key={i} session={session} day={day} />
-                        ))
-                      ) : (
-                         <div className="text-[10px] text-muted-foreground italic text-center py-4 border border-dashed rounded opacity-60">No sessions</div>
-                      )}
+                      {getSessionsForDay(day).map((session, i) => (
+                         <ClassCard key={i} session={session} onBook={handleBook} />
+                      ))}
                     </div>
                   </div>
                 ))}
@@ -210,14 +226,11 @@ const Schedule = () => {
                 </div>
 
                 <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                  {selectedDayKey && selectedSessions.length ? (
-                    selectedSessions.map((session, i) => (
-                      <ClassCard key={i} session={session} day={selectedDayKey} />
-                    ))
-                  ) : (
-                    <div className="rounded-md border border-border bg-background/40 p-4 text-sm text-muted-foreground sm:col-span-2">
-                      No sessions for this day. Try another date (Mon–Sat).
-                    </div>
+                  {selectedSessions.map((session, i) => (
+                    <ClassCard key={i} session={session} onBook={handleBook} />
+                  ))}
+                  {!selectedSessions.length && (
+                    <div className="p-4 text-muted-foreground">No sessions for this day.</div>
                   )}
                 </div>
               </div>
@@ -233,7 +246,7 @@ const Schedule = () => {
             <Button
               variant="secondary"
               className="w-full sm:w-auto"
-              onClick={() => handleBook("1:1 Intro Call", "Any day", "Choose a time")}
+              onClick={() => navigate("/#contact")}
             >
               Request 1:1 intro
             </Button>

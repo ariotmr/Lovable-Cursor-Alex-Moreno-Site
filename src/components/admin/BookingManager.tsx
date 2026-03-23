@@ -52,6 +52,8 @@ export const BookingManager = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['bookings'] });
+      queryClient.invalidateQueries({ queryKey: ['sessions'] });
+      queryClient.invalidateQueries({ queryKey: ['sessions_public'] });
       toast({ title: "Booking Updated", description: "The booking status has been updated." });
     },
     onError: (err: any) => {
