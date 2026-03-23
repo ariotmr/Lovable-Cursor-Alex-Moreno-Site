@@ -3,10 +3,10 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { useNavigate, Link } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
   DropdownMenuTrigger,
   DropdownMenuLabel,
   DropdownMenuSeparator
@@ -120,7 +120,7 @@ const Navbar = () => {
             ["Reviews", "proof"],
             ["Info", "logistics"],
           ].map(([label, id]) => (
-             <button
+            <button
               key={id}
               onClick={() => scrollTo(id)}
               className="text-sm text-muted-foreground transition-colors hover:text-foreground"

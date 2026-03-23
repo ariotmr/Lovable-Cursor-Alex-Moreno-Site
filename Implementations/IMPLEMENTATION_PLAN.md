@@ -171,15 +171,15 @@ This document outlines the step-by-step implementation plan for adding a Supabas
 ## Detailed Phases
 
 ### Phase 2: Session & Category Management
-- [ ] CRUD for categories.
-- [ ] CRUD for session_types.
-- [ ] CRUD for sessions.
+- [x] CRUD for categories.
+- [x] CRUD for session_types.
+- [x] CRUD for sessions.
 - [ ] Implement Availability Rules using JSONB recurrence rules.
-- [ ] Admin UI for Session management (List, Create, Edit).
+- [x] Admin UI for Session management (List, Create, Edit).
 
 ### Admin UI UX Improvements
 - [ ] Implement Collapsible Sidebar.
-- [ ] Add Breadcrumbs Navigation (small text).
+- [x] Add Breadcrumbs Navigation (small text).
 - [ ] Implement Real-time Notification Center.
-- [ ] Add Trend Indicators on Summary Cards (with date range filter).
-- [ ] Add Contextual Quick Actions directly on dashboard tables.
+- [x] Add Trend Indicators on Summary Cards (with date range filter).
+- [x] Add Contextual Quick Actions directly on dashboard tables.

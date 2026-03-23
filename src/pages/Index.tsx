@@ -7,12 +7,15 @@ import Logistics from "@/components/Logistics";
 import FinalCTA from "@/components/FinalCTA";
 import Footer from "@/components/Footer";
 
+import { Categories } from "@/components/Categories";
+
 const Index = () => {
   return (
     <>
       <Navbar />
       <main>
         <Hero />
+        <Categories />
         <Schedule />
         <Trust />
         <SocialProof />

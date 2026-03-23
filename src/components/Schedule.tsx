@@ -6,48 +6,10 @@ import { MapPin, TreePine } from "lucide-react";
 import { format, startOfToday } from "date-fns";
 import * as React from "react";
 
-type ClassSession = {
-  name: string;
-  focus: "Strength" | "Conditioning" | "Mobility";
-  location: "Studio" | "Outdoor";
-  time: string;
-  duration: string;
-  spots: number;
-};
+// (Original hardcoded data removed in favor of Supabase useQuery)
+
 
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-
-const schedule: Record<string, ClassSession[]> = {
-  Mon: [
-    { name: "Barbell Foundations", focus: "Strength", location: "Studio", time: "07:00", duration: "55 min", spots: 3 },
-    { name: "Conditioning Circuit", focus: "Conditioning", location: "Outdoor", time: "12:30", duration: "55 min", spots: 5 },
-    { name: "Upper Body Strength", focus: "Strength", location: "Studio", time: "18:30", duration: "55 min", spots: 2 },
-  ],
-  Tue: [
-    { name: "Mobility Flow", focus: "Mobility", location: "Studio", time: "07:00", duration: "55 min", spots: 6 },
-    { name: "Beach HIIT", focus: "Conditioning", location: "Outdoor", time: "10:00", duration: "55 min", spots: 4 },
-    { name: "Deadlift & Pull", focus: "Strength", location: "Studio", time: "19:00", duration: "55 min", spots: 1 },
-  ],
-  Wed: [
-    { name: "Push & Press", focus: "Strength", location: "Studio", time: "07:00", duration: "55 min", spots: 4 },
-    { name: "Park Conditioning", focus: "Conditioning", location: "Outdoor", time: "12:30", duration: "55 min", spots: 6 },
-    { name: "Lower Body Strength", focus: "Strength", location: "Studio", time: "18:30", duration: "55 min", spots: 3 },
-  ],
-  Thu: [
-    { name: "Mobility & Recovery", focus: "Mobility", location: "Studio", time: "07:00", duration: "55 min", spots: 8 },
-    { name: "Sprint Training", focus: "Conditioning", location: "Outdoor", time: "10:00", duration: "55 min", spots: 5 },
-    { name: "Full Body Strength", focus: "Strength", location: "Studio", time: "19:00", duration: "55 min", spots: 2 },
-  ],
-  Fri: [
-    { name: "Olympic Lifts", focus: "Strength", location: "Studio", time: "07:00", duration: "55 min", spots: 3 },
-    { name: "Beach Circuit", focus: "Conditioning", location: "Outdoor", time: "12:30", duration: "55 min", spots: 4 },
-    { name: "Squat & Hinge", focus: "Strength", location: "Studio", time: "18:30", duration: "55 min", spots: 2 },
-  ],
-  Sat: [
-    { name: "Weekend Strength", focus: "Strength", location: "Studio", time: "09:00", duration: "55 min", spots: 5 },
-    { name: "Outdoor Endurance", focus: "Conditioning", location: "Outdoor", time: "11:00", duration: "55 min", spots: 6 },
-  ],
-};
 
 const focusColor: Record<string, string> = {
   Strength: "bg-primary/15 text-primary border-primary/25",
@@ -95,7 +57,7 @@ const ClassCard = ({ session, day }: { session: ClassSession; day: string }) => 
     </h4>
 
     <div className="flex items-center gap-2">
-      <span className={`inline-flex rounded-full border px-2 py-0.5 text-[10px] font-medium ${focusColor[session.focus]}`}>
+      <span className={`inline-flex rounded-full border px-2 py-0.5 text-[10px] font-medium ${focusColor[session.focus] || focusColor.Strength}`}>
         {session.focus}
       </span>
       <span className="text-[10px] text-muted-foreground">{session.duration}</span>
@@ -116,11 +78,51 @@ const ClassCard = ({ session, day }: { session: ClassSession; day: string }) => 
   </div>
 );
 
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { Skeleton } from "@/components/ui/skeleton";
+
+type ClassSession = {
+  name: string;
+  focus: "Strength" | "Conditioning" | "Mobility";
+  location: "Studio" | "Outdoor" | string;
+  time: string;
+  duration: string;
+  spots: number;
+};
+
 const Schedule = () => {
   const [selectedDate, setSelectedDate] = React.useState<Date | undefined>(() => startOfToday());
 
+  const { data: sessions, isLoading } = useQuery({
+    queryKey: ['sessions_public'],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('sessions').select(`
+        *,
+        session_types(name, category_id, categories(name))
+      `).eq('is_active', true).order('start_date');
+      if (error) throw error;
+      return data;
+    }
+  });
+
+  const getSessionsForDay = (dayKey: string) => {
+     if (!sessions) return [];
+     return sessions.filter(s => {
+       const date = new Date(s.start_date);
+       return dayKeyFromDate(date) === dayKey;
+     }).map(s => ({
+       name: s.title,
+       focus: (s.session_types?.categories?.name || "Strength") as any,
+       location: s.location || "Studio",
+       time: format(new Date(s.start_date), "HH:mm"),
+       duration: "55 min",
+       spots: s.max_slots
+     }));
+  };
+
   const selectedDayKey = selectedDate ? dayKeyFromDate(selectedDate) : null;
-  const selectedSessions = selectedDayKey ? schedule[selectedDayKey] : [];
+  const selectedSessions = selectedDayKey ? getSessionsForDay(selectedDayKey) : [];
 
   const subtitle =
     selectedDayKey && selectedSessions.length
@@ -158,13 +160,17 @@ const Schedule = () => {
                     <div className="flex items-center justify-between rounded-md border border-border bg-card px-3 py-2">
                       <span className="text-sm font-semibold text-foreground">{day}</span>
                       <span className="text-xs text-muted-foreground">
-                        {schedule[day].length} slot{schedule[day].length === 1 ? "" : "s"}
+                        {getSessionsForDay(day).length} slot{getSessionsForDay(day).length === 1 ? "" : "s"}
                       </span>
                     </div>
                     <div className="flex flex-col gap-3">
-                      {schedule[day].map((session, i) => (
-                        <ClassCard key={i} session={session} day={day} />
-                      ))}
+                      {getSessionsForDay(day).length > 0 ? (
+                        getSessionsForDay(day).map((session, i) => (
+                           <ClassCard key={i} session={session} day={day} />
+                        ))
+                      ) : (
+                         <div className="text-[10px] text-muted-foreground italic text-center py-4 border border-dashed rounded opacity-60">No sessions</div>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -183,7 +189,7 @@ const Schedule = () => {
                   disabled={(date) => {
                     const dayKey = dayKeyFromDate(date);
                     if (!dayKey) return true; // Sundays
-                    return schedule[dayKey].length === 0;
+                    return getSessionsForDay(dayKey).length === 0;
                   }}
                 />
                 <div className="border-t border-border px-4 py-3 text-xs text-muted-foreground">

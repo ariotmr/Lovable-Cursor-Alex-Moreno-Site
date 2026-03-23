@@ -11,12 +11,54 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { format } from "date-fns";
+
 const AdminDashboard = () => {
+  const { data: statsData, isLoading: isStatsLoading } = useQuery({
+    queryKey: ['admin-stats'],
+    queryFn: async () => {
+      const [profiles, bookings] = await Promise.all([
+        supabase.from('profiles').select('*', { count: 'exact', head: true }),
+        supabase.from('bookings').select('status, sessions(price)')
+      ]);
+
+      const totalUsers = profiles.count || 0;
+      const activeBookings = bookings.data?.filter(b => b.status === 'confirmed' || b.status === 'pending').length || 0;
+      const totalRevenue = bookings.data?.filter(b => b.status === 'confirmed').reduce((sum, b) => {
+        const price = (b.sessions as any)?.price || 0;
+        return sum + (Number(price) || 0);
+      }, 0) || 0;
+      const cancellationRate = bookings.data?.length ? ((bookings.data.filter(b => b.status === 'cancelled').length / bookings.data.length) * 100).toFixed(1) : "0";
+
+      return {
+        totalUsers,
+        activeBookings,
+        totalRevenue: `€${totalRevenue.toLocaleString()}`,
+        cancellationRate: `${cancellationRate}%`
+      };
+    }
+  });
+
+  const { data: recentBookings, isLoading: isRecentLoading } = useQuery({
+    queryKey: ['admin-recent-bookings'],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('bookings').select(`
+        id, created_at, status, user_id,
+        sessions(title, start_date),
+        profiles(first_name, last_name, email)
+      `).order('created_at', { ascending: false }).limit(5);
+      if (error) throw error;
+      return data;
+    }
+  });
+
   const stats = [
-    { title: "Total Users", value: "1,234", icon: Users, description: "+12.5%", isPositive: true },
-    { title: "Active Bookings", value: "856", icon: Activity, description: "24 new today", isPositive: true },
-    { title: "Recent Revenue", value: "$45,231.89", icon: DollarSign, description: "+20.1%", isPositive: true },
-    { title: "Cancellation Rate", value: "4.2%", icon: CreditCard, description: "-1.1%", isPositive: true },
+    { title: "Total Clients", value: statsData?.totalUsers || "0", icon: Users, description: "Active members", isPositive: true },
+    { title: "Active Bookings", value: statsData?.activeBookings || "0", icon: Activity, description: "Confirmed & Pending", isPositive: true },
+    { title: "Confirmed Revenue", value: statsData?.totalRevenue || "€0", icon: DollarSign, description: "From paid sessions", isPositive: true },
+    { title: "Cancellation Rate", value: statsData?.cancellationRate || "0%", icon: CreditCard, description: "Based on all time", isPositive: false },
   ];
 
   const breadcrumbs = (
@@ -103,18 +145,30 @@ const AdminDashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {[1, 2, 3, 4, 5].map((i) => (
-                  <div key={i} className="flex items-center justify-between border-b border-border pb-3 last:border-0 last:pb-0">
-                    <div className="flex items-center gap-3">
-                      <div className="h-2 w-2 rounded-full bg-primary" />
-                      <div>
-                        <p className="text-sm font-medium">New booking for "HIIT Core"</p>
-                        <p className="text-xs text-muted-foreground">client{i}@example.com • Mon, 10:00 AM</p>
+                {isRecentLoading ? (
+                  <p className="text-sm text-muted">Loading activity...</p>
+                ) : recentBookings && recentBookings.length > 0 ? (
+                  recentBookings.map((booking: any) => (
+                    <div key={booking.id} className="flex items-center justify-between border-b border-border pb-3 last:border-0 last:pb-0">
+                      <div className="flex items-center gap-3">
+                        <div className={`h-2 w-2 rounded-full ${booking.status === 'confirmed' ? 'bg-green-500' : 'bg-amber-500'}`} />
+                        <div>
+                          <p className="text-sm font-medium">
+                            {booking.profiles?.first_name} {booking.profiles?.last_name} booked "{booking.sessions?.title}"
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {booking.profiles?.email} • {format(new Date(booking.sessions?.start_date), "MMM d, HH:mm")}
+                          </p>
+                        </div>
                       </div>
+                      <span className="text-xs text-muted-foreground font-mono">
+                         {booking.status.toUpperCase()}
+                      </span>
                     </div>
-                    <span className="text-xs text-muted-foreground font-mono">{i}h ago</span>
-                  </div>
-                ))}
+                  ))
+                ) : (
+                  <p className="text-sm text-muted-foreground text-center py-4 italic">No recent activity found.</p>
+                )}
               </div>
             </CardContent>
           </Card>
