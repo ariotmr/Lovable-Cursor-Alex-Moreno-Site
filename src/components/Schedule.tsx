@@ -7,6 +7,7 @@ import { format, startOfToday } from "date-fns";
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
+import { InlineWidget } from "react-calendly";
 
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
@@ -87,170 +88,148 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 const Schedule = () => {
   const navigate = useNavigate();
-  const [selectedDate, setSelectedDate] = React.useState<Date | undefined>(() => startOfToday());
-
-  const handleBook = async (sessionId: string) => {
-    const { data: { session: authSession } } = await supabase.auth.getSession();
-    
-    if (!authSession) {
-      toast({
-        title: "Authentication Required",
-        description: "Please sign in to book a session.",
-      });
-      navigate("/login", { state: { redirectTo: "/", bookSessionId: sessionId } });
-      return;
-    }
-
-    // Redirect to user dashboard with booking intent
-    navigate("/user", { state: { bookSessionId: sessionId } });
-  };
-
-  const { data: sessions, isLoading } = useQuery({
-    queryKey: ['sessions_public'],
-    queryFn: async () => {
-      // Use booking count to calculate real spots left
-      const { data, error } = await supabase.from('sessions').select(`
-        *,
-        session_types(name, category_id, categories(name)),
-        bookings(status)
-      `).eq('is_active', true).order('start_date');
-      if (error) throw error;
-      return data;
-    }
+  const [formData, setFormData] = React.useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    organization: "",
+    reason: "",
   });
+  const [showCalendar, setShowCalendar] = React.useState(false);
 
-  const getSessionsForDay = (dayKey: string) => {
-     if (!sessions) return [];
-     return sessions.filter(s => {
-       const date = new Date(s.start_date);
-       return dayKeyFromDate(date) === dayKey;
-     }).map(s => {
-       // Only count active bookings (not cancelled) 
-       const activeBookings = s.bookings?.filter((b: any) => b.status !== 'cancelled').length || 0;
-       const spotsLeft = Math.max(0, (s.max_slots || 0) - activeBookings);
-       
-       return {
-         id: s.id,
-         name: s.title,
-         focus: (s.session_types?.categories?.name || "Strength") as any,
-         location: s.location || "Studio",
-         time: format(new Date(s.start_date), "HH:mm"),
-         duration: "55 min",
-         spots: spotsLeft
-       };
-     });
+  const calendlyUrl = import.meta.env.VITE_CALENDLY_URL || "https://calendly.com/arioteimuri/new-meeting";
+  const primaryColor = import.meta.env.VITE_BRAND_PRIMARY || "f97316";
+  const textColor = import.meta.env.VITE_BRAND_TEXT || "f8fafc";
+  const bgColor = import.meta.env.VITE_BRAND_BG || "0b1120";
+  const hideGdpr = import.meta.env.VITE_CALENDLY_HIDE_GDPR === "true";
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const selectedDayKey = selectedDate ? dayKeyFromDate(selectedDate) : null;
-  const selectedSessions = selectedDayKey ? getSessionsForDay(selectedDayKey) : [];
-
-  const subtitle =
-    selectedDayKey && selectedSessions.length
-      ? `${selectedDayKey} · ${selectedSessions.length} session${selectedSessions.length === 1 ? "" : "s"}`
-      : "All sessions are 55 min · Pick a slot to book";
+  const handleContinue = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (formData.email && formData.firstName) {
+      setShowCalendar(true);
+    }
+  };
 
   return (
     <section id="schedule" className="py-20 sm:py-28">
-      <div className="mx-auto max-w-6xl px-4 sm:px-6">
-        <Tabs defaultValue="grid" className="w-full">
-          <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-            <div className="max-w-2xl">
-              <h2 className="font-heading text-3xl font-semibold text-foreground sm:text-4xl">
-                Schedule
-              </h2>
-              <p className="mt-2 text-muted-foreground">{subtitle}</p>
-            </div>
+      <div className="mx-auto max-w-6xl px-4 sm:px-6 text-center mb-12">
+        <h2 className="font-heading text-3xl font-semibold text-foreground sm:text-4xl">
+          {showCalendar ? "Pick a Time" : "Book Your Training"}
+        </h2>
+        <p className="mt-2 text-muted-foreground mx-auto max-w-2xl">
+          {showCalendar 
+            ? "Your details are pre-filled. Just select a slot below." 
+            : "Tell us a bit about yourself first so we can prepare for our session."}
+        </p>
+      </div>
 
-            <TabsList className="w-full md:w-auto">
-              <TabsTrigger className="flex-1 md:flex-none" value="grid">
-                Grid
-              </TabsTrigger>
-              <TabsTrigger className="flex-1 md:flex-none" value="calendar">
-                Calendar
-              </TabsTrigger>
-            </TabsList>
-          </div>
-
-          <TabsContent value="grid" className="mt-0">
-            {/* Keep it full-width and scrollable on small screens */}
-            <div className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
-              <div className="grid min-w-[960px] grid-cols-6 gap-4">
-                {DAYS.map((day) => (
-                  <div key={day} className="flex flex-col gap-3">
-                    <div className="flex items-center justify-between rounded-md border border-border bg-card px-3 py-2">
-                      <span className="text-sm font-semibold text-foreground">{day}</span>
-                      <span className="text-xs text-muted-foreground">
-                        {getSessionsForDay(day).length} slot{getSessionsForDay(day).length === 1 ? "" : "s"}
-                      </span>
-                    </div>
-                    <div className="flex flex-col gap-3">
-                      {getSessionsForDay(day).map((session, i) => (
-                         <ClassCard key={i} session={session} onBook={handleBook} />
-                      ))}
-                    </div>
-                  </div>
-                ))}
+      <div className="mx-auto max-w-5xl px-4">
+        {!showCalendar ? (
+          <div className="mx-auto max-w-xl rounded-xl border border-border bg-card p-6 shadow-2xl sm:p-8">
+            <form onSubmit={handleContinue} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-foreground">First Name</label>
+                  <input
+                    required
+                    name="firstName"
+                    value={formData.firstName}
+                    onChange={handleInputChange}
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-foreground">Last Name</label>
+                  <input
+                    required
+                    name="lastName"
+                    value={formData.lastName}
+                    onChange={handleInputChange}
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  />
+                </div>
               </div>
-            </div>
-          </TabsContent>
 
-          <TabsContent value="calendar" className="mt-0">
-            <div className="grid gap-6 lg:grid-cols-[360px_1fr]">
-              <div className="overflow-hidden rounded-lg border border-border bg-card">
-                <Calendar
-                  mode="single"
-                  selected={selectedDate}
-                  onSelect={setSelectedDate}
-                  fromDate={startOfToday()}
-                  disabled={(date) => {
-                    const dayKey = dayKeyFromDate(date);
-                    if (!dayKey) return true; // Sundays
-                    return getSessionsForDay(dayKey).length === 0;
-                  }}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-foreground">Email</label>
+                <input
+                  required
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 />
-                <div className="border-t border-border px-4 py-3 text-xs text-muted-foreground">
-                  Tip: disabled days have no sessions (Sunday).
-                </div>
               </div>
 
-              <div className="rounded-lg border border-border bg-card p-4">
-                <div className="flex flex-wrap items-baseline justify-between gap-2">
-                  <h3 className="font-heading text-lg font-semibold text-foreground">
-                    {selectedDate ? format(selectedDate, "EEEE, MMM d") : "Select a date"}
-                  </h3>
-                  {selectedDayKey ? (
-                    <span className="text-sm text-muted-foreground">{selectedDayKey}</span>
-                  ) : (
-                    <span className="text-sm text-muted-foreground">No sessions</span>
-                  )}
-                </div>
-
-                <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                  {selectedSessions.map((session, i) => (
-                    <ClassCard key={i} session={session} onBook={handleBook} />
-                  ))}
-                  {!selectedSessions.length && (
-                    <div className="p-4 text-muted-foreground">No sessions for this day.</div>
-                  )}
-                </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-foreground">Organization (Optional)</label>
+                <input
+                  name="organization"
+                  value={formData.organization}
+                  onChange={handleInputChange}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                />
               </div>
-            </div>
-          </TabsContent>
-        </Tabs>
 
-        <div className="mt-10 rounded-lg border border-border bg-card p-4 sm:p-5">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <div className="text-sm text-muted-foreground">
-              Want a personalized plan instead of a class slot?
-            </div>
-            <Button
-              variant="secondary"
-              className="w-full sm:w-auto"
-              onClick={() => navigate("/#contact")}
-            >
-              Request 1:1 intro
-            </Button>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-foreground">Reason for session</label>
+                <textarea
+                  name="reason"
+                  rows={3}
+                  value={formData.reason}
+                  onChange={handleInputChange}
+                  className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  placeholder="e.g., Weight loss, Strength training, etc."
+                />
+              </div>
+
+              <Button type="submit" className="w-full h-12 text-lg font-semibold mt-6 shadow-lg shadow-primary/20">
+                Continue to Schedule
+              </Button>
+            </form>
           </div>
+        ) : (
+          <div className="min-h-[700px] w-full overflow-hidden rounded-xl border border-border bg-card shadow-2xl">
+            <div className="p-4 border-b border-border flex items-center justify-between bg-muted/30">
+              <span className="text-sm text-foreground">Booking for: <strong>{formData.firstName} {formData.lastName}</strong></span>
+              <button onClick={() => setShowCalendar(false)} className="text-xs text-primary hover:underline">Change details</button>
+            </div>
+            <InlineWidget
+              url={calendlyUrl}
+              styles={{ height: "700px", width: "100%" }}
+              prefill={{
+                email: formData.email,
+                name: `${formData.firstName} ${formData.lastName}`,
+              }}
+              pageSettings={{
+                backgroundColor: bgColor,
+                hideEventTypeDetails: true,
+                hideLandingPageDetails: true,
+                primaryColor: primaryColor,
+                textColor: textColor,
+                hideGdprBanner: hideGdpr,
+              }}
+            />
+          </div>
+        )}
+
+        <div className="mt-10 rounded-lg border border-border bg-card p-4 sm:p-5 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div className="text-sm text-muted-foreground">
+            Looking for a custom group session or corporate package?
+          </div>
+          <Button
+            variant="secondary"
+            className="w-full sm:w-auto"
+            onClick={() => navigate("/#contact")}
+          >
+            Contact for Details
+          </Button>
         </div>
       </div>
     </section>

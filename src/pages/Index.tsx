@@ -8,6 +8,7 @@ import FinalCTA from "@/components/FinalCTA";
 import Footer from "@/components/Footer";
 
 import { Categories } from "@/components/Categories";
+import CalendlyBadge from "@/components/CalendlyBadge";
 
 const Index = () => {
   return (
@@ -23,6 +24,7 @@ const Index = () => {
         <FinalCTA />
       </main>
       <Footer />
+      <CalendlyBadge />
     </>
   );
 };
