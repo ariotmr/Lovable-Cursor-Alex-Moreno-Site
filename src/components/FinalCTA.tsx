@@ -3,10 +3,10 @@ import { toast } from "@/hooks/use-toast";
 
 const FinalCTA = () => {
   const handleBook = () => {
-    toast({
-      title: "Demo — Booking initiated",
-      description: "In production, this opens the booking flow.",
-    });
+    const element = document.getElementById("book-session");
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth" });
+    }
   };
 
   return (

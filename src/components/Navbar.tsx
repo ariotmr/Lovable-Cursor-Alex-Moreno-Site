@@ -116,10 +116,11 @@ const Navbar = () => {
 
         <div className="hidden items-center gap-8 md:flex">
           {[
-            ["Schedule", "schedule"],
+            ["Booking", "book-session"],
+            ["Inquiry", "contact"],
             ["About", "trust"],
             ["Reviews", "proof"],
-            ["Info", "logistics"],
+            ["Location", "logistics"],
           ].map(([label, id]) => (
             <button
               key={id}
@@ -183,7 +184,7 @@ const Navbar = () => {
           )}
           <Button
             size="sm"
-            onClick={() => scrollTo("schedule")}
+            onClick={() => scrollTo("book-session")}
             className="font-semibold shadow-sm transition-transform active:scale-95 bg-[#FF6600] text-white hover:bg-[#E65C00]"
           >
             Book Session

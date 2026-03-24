@@ -32,7 +32,7 @@ const Hero = () => {
         <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
           <Button
             size="lg"
-            onClick={() => scrollTo("schedule")}
+            onClick={() => scrollTo("book-session")}
             className="px-8 text-base font-semibold"
           >
             Book Your Session

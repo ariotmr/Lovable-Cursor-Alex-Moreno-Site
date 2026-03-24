@@ -8,6 +8,7 @@ import * as React from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
 import { InlineWidget } from "react-calendly";
+import { notifyN8n } from "@/lib/notifyN8n";
 
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
@@ -112,6 +113,15 @@ const Schedule = () => {
     e.preventDefault();
     if (formData.email && formData.firstName) {
       setShowCalendar(true);
+      // Trigger webhook n8n
+      notifyN8n({
+        eventType: "booking_intent",
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        organization: formData.organization || null,
+        reason: formData.reason || null,
+      });
     }
   };
 
@@ -226,7 +236,13 @@ const Schedule = () => {
           <Button
             variant="secondary"
             className="w-full sm:w-auto"
-            onClick={() => navigate("/#contact")}
+            onClick={() => {
+              navigate("/#contact");
+              notifyN8n({
+                event_type: "contact_inquiry",
+                message: "Group or Corporate Session Interest - secondary CTA clicked",
+              });
+            }}
           >
             Contact for Details
           </Button>

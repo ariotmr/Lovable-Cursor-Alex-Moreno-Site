@@ -36,6 +36,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { format, formatDistanceToNow, isAfter, isBefore, addHours } from "date-fns";
+import { notifyN8n } from "@/lib/notifyN8n";
 
 const UserDashboard = () => {
   const navigate = useNavigate();
@@ -135,6 +136,16 @@ const UserDashboard = () => {
         description: `Your session for ${targetSession.title} is all set.`,
       });
 
+      // Notify n8n — fire and forget
+      notifyN8n({
+        eventType: "booking_confirmed",
+        firstName: profile?.first_name || null,
+        lastName: profile?.last_name || null,
+        email: user.email,
+        sessionId: targetSession.id,
+        sessionTitle: targetSession.title,
+        sessionDate: targetSession.start_date,
+      });
       setIsBookingSheetOpen(false);
       // Replace state to avoid re-opening on refresh
       navigate("/user", { replace: true, state: {} });
