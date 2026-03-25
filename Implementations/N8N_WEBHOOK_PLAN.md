@@ -53,6 +53,8 @@ All events share this structure with an `event_type` discriminator:
   "firstName": "...",
   "lastName": "...",
   "email": "...",
+  "subject": "...",
+  "message": "...",
   "sessionId": "...",
   "sessionTitle": "...",
   "sessionDate": "...",

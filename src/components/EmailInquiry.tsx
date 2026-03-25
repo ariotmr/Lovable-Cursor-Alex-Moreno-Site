@@ -12,8 +12,9 @@ const EmailInquiry = () => {
     firstName: "",
     lastName: "",
     email: "",
+    subject: "", // Newly added field
     message: "",
-    botTrap: "", // camelCase state to match desired payload
+    botTrap: "",
   });
 
   const handleChange = (
@@ -35,16 +36,17 @@ const EmailInquiry = () => {
         firstName: form.firstName,
         lastName: form.lastName,
         email: form.email,
+        subject: form.subject, // Include subject in payload
         message: form.message,
         botTrap: form.botTrap,
       });
 
       setStatus("success");
-      setForm({ firstName: "", lastName: "", email: "", message: "", botTrap: "" });
+      setForm({ firstName: "", lastName: "", email: "", subject: "", message: "", botTrap: "" });
     } catch (err) {
       console.error("[EmailInquiry] Submit error:", err);
       setStatus("error");
-      toast.error("Form error. Please ensure your dev server is restarted.");
+      toast.error("Form submission failed. Please try again.");
       setStatus("idle");
     }
   };
@@ -178,6 +180,25 @@ const EmailInquiry = () => {
 
                 <div className="space-y-2">
                   <label
+                    htmlFor="inq-subject"
+                    className="text-sm font-medium text-foreground"
+                  >
+                    Subject <span className="text-primary">*</span>
+                  </label>
+                  <input
+                    id="inq-subject"
+                    name="subject"
+                    required
+                    disabled={status === "loading"}
+                    value={form.subject}
+                    onChange={handleChange}
+                    placeholder="Enquiry about corporate sessions..."
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:opacity-50"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label
                     htmlFor="inq-message"
                     className="text-sm font-medium text-foreground"
                   >
@@ -200,7 +221,7 @@ const EmailInquiry = () => {
                   type="submit"
                   size="lg"
                   disabled={status === "loading"}
-                  className="w-full font-semibold gap-2 shadow-lg shadow-primary/20"
+                  className="w-full font-semibold gap-2 shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
                 >
                   {status === "loading" ? (
                     <>
