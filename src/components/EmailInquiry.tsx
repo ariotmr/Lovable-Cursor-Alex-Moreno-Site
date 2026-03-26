@@ -14,7 +14,6 @@ const EmailInquiry = () => {
     email: "",
     subject: "", // Newly added field
     message: "",
-    botTrap: "",
   });
 
   const handleChange = (
@@ -38,11 +37,10 @@ const EmailInquiry = () => {
         email: form.email,
         subject: form.subject, // Include subject in payload
         message: form.message,
-        botTrap: form.botTrap,
       });
 
       setStatus("success");
-      setForm({ firstName: "", lastName: "", email: "", subject: "", message: "", botTrap: "" });
+      setForm({ firstName: "", lastName: "", email: "", subject: "", message: "" });
     } catch (err) {
       console.error("[EmailInquiry] Submit error:", err);
       setStatus("error");
@@ -109,16 +107,6 @@ const EmailInquiry = () => {
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-5">
-                <input
-                  type="text"
-                  name="botTrap"
-                  value={form.botTrap}
-                  onChange={handleChange}
-                  aria-hidden="true"
-                  tabIndex={-1}
-                  style={{ display: "none" }}
-                />
-
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <label
