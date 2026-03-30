@@ -10,6 +10,7 @@ import Footer from "@/components/Footer";
 import { Categories } from "@/components/Categories";
 import CalendlyBadge from "@/components/CalendlyBadge";
 import EmailInquiry from "@/components/EmailInquiry";
+import TransformationPlan from "@/components/TransformationPlan";
 
 const Index = () => {
   return (
@@ -18,6 +19,7 @@ const Index = () => {
       <main>
         <Hero />
         <Categories />
+        <TransformationPlan />
         <BookingSession />
         <Trust />
         <SocialProof />
