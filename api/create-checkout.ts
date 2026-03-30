@@ -50,8 +50,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // Return the session URL back to the frontend to handle the redirect
     return res.status(200).json({ url: session.url });
-  } catch (err: any) {
-    console.error('Stripe error:', err);
-    return res.status(err.statusCode || 500).json({ message: err.message });
+  } catch (err: unknown) {
+    const error = err as any; 
+    console.error('Stripe error:', error);
+    return res.status(error.statusCode || 500).json({ message: error.message || "Internal server error" });
   }
 }

@@ -126,10 +126,11 @@ const Courses = () => {
       } else {
         throw new Error('No checkout URL returned from Stripe');
       }
-    } catch (err: any) {
-      console.error("[Courses] Submit error:", err);
+    } catch (err: unknown) {
+      const error = err as Error;
+      console.error("[Courses] Submit error:", error);
       setStatus("error");
-      toast.error(err.message || "Checkout failed. Please try again.");
+      toast.error(error.message || "Checkout failed. Please try again.");
       setStatus("idle");
     }
   };
