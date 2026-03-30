@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { Analytics } from "@vercel/analytics/react";
 import Index from "./pages/Index.tsx";
 import Login from "./pages/Login.tsx";
+import Courses from "./pages/Courses.tsx";
 import Admin from "./pages/Admin.tsx";
 import Sessions from "./pages/admin/Sessions.tsx";
 import Clients from "./pages/admin/Clients.tsx";
@@ -26,6 +27,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/courses" element={<Courses />} />
           <Route 
             path="/admin" 
             element={

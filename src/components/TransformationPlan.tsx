@@ -8,11 +8,8 @@ type Status = "idle" | "loading" | "success" | "error";
 const TransformationPlan = () => {
   const [status, setStatus] = React.useState<Status>("idle");
   const [form, setForm] = React.useState({
-    firstName: "",
-    lastName: "",
+    name: "",
     email: "",
-    goals: "",
-    experienceLevel: "Beginner",
   });
 
   const handleChange = (
@@ -35,14 +32,23 @@ const TransformationPlan = () => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          firstName: form.firstName,
-          lastName: form.lastName,
+          firstName: form.name.split(' ')[0] || '',
+          lastName: form.name.split(' ').slice(1).join(' ') || '',
           email: form.email,
-          reason: form.goals,
           planType: 'Transformation Plan',
-          organization: form.experienceLevel, // Reusing field for metadata
         }),
       });
+
+      if (response.status === 404) {
+        throw new Error("API Route Not Found (404). If you are testing locally, make sure to run 'vercel dev' instead of 'npm run dev' to enable backend functions.");
+      }
+
+      const contentType = response.headers.get("content-type");
+      if (!contentType || !contentType.includes("application/json")) {
+        const text = await response.text();
+        console.error("Non-JSON response received:", text);
+        throw new Error("Server returned an invalid response. Check your server logs.");
+      }
 
       const data = await response.json();
 
@@ -51,10 +57,9 @@ const TransformationPlan = () => {
       }
 
       if (data.url) {
-        // Redirect to Stripe secure checkout
         window.location.href = data.url;
       } else {
-        throw new Error('No checkout URL returned');
+        throw new Error('No checkout URL returned from Stripe');
       }
     } catch (err: any) {
       console.error("[TransformationPlan] Submit error:", err);
@@ -109,33 +114,19 @@ const TransformationPlan = () => {
               Apply & Secure Your Spot
             </h3>
             <form onSubmit={handleSubmit} className="space-y-5">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-foreground">
-                    First Name <span className="text-primary">*</span>
-                  </label>
-                  <input
-                    name="firstName"
-                    required
-                    disabled={status === "loading"}
-                    value={form.firstName}
-                    onChange={handleChange}
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:opacity-50"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-foreground">
-                    Last Name <span className="text-primary">*</span>
-                  </label>
-                  <input
-                    name="lastName"
-                    required
-                    disabled={status === "loading"}
-                    value={form.lastName}
-                    onChange={handleChange}
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:opacity-50"
-                  />
-                </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-foreground">
+                  Full Name <span className="text-primary">*</span>
+                </label>
+                <input
+                  name="name"
+                  required
+                  disabled={status === "loading"}
+                  value={form.name}
+                  onChange={handleChange}
+                  placeholder="First and Last Name"
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:opacity-50"
+                />
               </div>
 
               <div className="space-y-2">
@@ -149,37 +140,8 @@ const TransformationPlan = () => {
                   disabled={status === "loading"}
                   value={form.email}
                   onChange={handleChange}
+                  placeholder="alex@example.com"
                   className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:opacity-50"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-foreground">Current Experience Level</label>
-                <select
-                  name="experienceLevel"
-                  value={form.experienceLevel}
-                  onChange={handleChange}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                >
-                  <option value="Beginner">Beginner (New to training)</option>
-                  <option value="Intermediate">Intermediate (1-3 years)</option>
-                  <option value="Advanced">Advanced (3+ years)</option>
-                </select>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-foreground">
-                  Primary Goal <span className="text-primary">*</span>
-                </label>
-                <textarea
-                  name="goals"
-                  required
-                  rows={3}
-                  disabled={status === "loading"}
-                  value={form.goals}
-                  onChange={handleChange}
-                  placeholder="e.g., Lose 10 lbs, build muscle, improve mobility..."
-                  className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:opacity-50 resize-none"
                 />
               </div>
 

@@ -116,19 +116,34 @@ const Navbar = () => {
 
         <div className="hidden items-center gap-8 md:flex">
           {[
+            ["Courses", "/courses"],
             ["Booking", "book-session"],
             ["Inquiry", "contact"],
             ["About", "trust"],
             ["Reviews", "proof"],
             ["Location", "logistics"],
           ].map(([label, id]) => (
-            <button
-              key={id}
-              onClick={() => scrollTo(id)}
-              className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-            >
-              {label}
-            </button>
+            id.startsWith("/") ? (
+              <Link
+                key={id}
+                to={id}
+                className={`text-sm transition-colors hover:text-foreground ${
+                  window.location.pathname === id 
+                    ? "text-primary font-bold" 
+                    : "text-muted-foreground"
+                }`}
+              >
+                {label}
+              </Link>
+            ) : (
+              <button
+                key={id}
+                onClick={() => scrollTo(id)}
+                className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+              >
+                {label}
+              </button>
+            )
           ))}
         </div>
 
