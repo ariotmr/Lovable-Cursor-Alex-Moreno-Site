@@ -33,8 +33,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       ],
       mode: 'payment', // Assuming one-time payment. Change to 'subscription' if recurring.
       customer_email: email,
-      success_url: `${appUrl}/?success=true`,
-      cancel_url: `${appUrl}/?canceled=true`,
+      success_url: `${appUrl}/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${appUrl}/courses?canceled=true`,
       // Attach form data to metadata so the n8n webhook can access it after payment
       metadata: {
         firstName: firstName || '',

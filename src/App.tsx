@@ -14,6 +14,7 @@ import Bookings from "./pages/admin/Bookings.tsx";
 import UserDashboard from "./pages/User.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import Profile from "./pages/Profile.tsx";
+import Success from "./pages/Success.tsx";
 import ProtectedRoute from "./components/ProtectedRoute.tsx";
 
 const queryClient = new QueryClient();
@@ -28,6 +29,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/login" element={<Login />} />
           <Route path="/courses" element={<Courses />} />
+          <Route path="/success" element={<Success />} />
           <Route 
             path="/admin" 
             element={
