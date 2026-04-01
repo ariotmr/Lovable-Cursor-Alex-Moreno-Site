@@ -32,6 +32,7 @@ import {
   Clock,
   Gem
 } from "lucide-react";
+import { SEO } from "@/components/SEO";
 
 type Status = "idle" | "loading" | "success" | "error";
 
@@ -70,6 +71,20 @@ const featuredCourses: Course[] = [
     ]
   }
 ];
+
+const coursesSchema = featuredCourses.map(c => ({
+  "@context": "https://schema.org",
+  "@type": "Product", // Or Course
+  "name": c.title,
+  "description": c.longDescription,
+  "offers": {
+    "@type": "Offer",
+    "price": c.price.replace("$", ""),
+    "priceCurrency": "USD",
+    "availability": "https://schema.org/InStock",
+    "url": "https://alexmoreno.space/courses"
+  }
+}));
 
 const Courses = () => {
   const [status, setStatus] = React.useState<Status>("idle");
@@ -137,6 +152,12 @@ const Courses = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col pt-16">
+      <SEO 
+        title="Alex Moreno — Elite 12-Week Transformation Plans"
+        description="Select a module below to view details and begin your transformation journey with Alex Moreno."
+        url="https://alexmoreno.space/courses"
+        structuredData={coursesSchema}
+      />
       <Navbar />
       
       {/* Search/Filter Header */}

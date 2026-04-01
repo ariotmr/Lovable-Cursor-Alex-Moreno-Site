@@ -12,3 +12,9 @@ Allow: /
 
 User-agent: *
 Allow: /
+Disallow: /admin/
+Disallow: /user/
+Disallow: /success
+Disallow: /profile
+
+Sitemap: https://alexmoreno.space/sitemap.xml
