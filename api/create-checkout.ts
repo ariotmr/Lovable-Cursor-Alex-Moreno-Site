@@ -20,7 +20,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       throw new Error("STRIPE_PRICE_ID is not configured on the server.");
     }
 
-    const appUrl = process.env.VITE_APP_URL || `https://${process.env.VERCEL_URL}` || "http://localhost:5173";
+    // Prioritize production env vars, then fallback to whatever host made the request
+    let appUrl = process.env.VITE_APP_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "");
+    if (!appUrl && req.headers.host) {
+      const protocol = req.headers.host.includes('localhost') ? 'http' : 'https';
+      appUrl = `${protocol}://${req.headers.host}`;
+    }
+    appUrl = appUrl || "http://localhost:8080";
 
     // Create the Stripe Checkout Session
     const session = await stripe.checkout.sessions.create({
