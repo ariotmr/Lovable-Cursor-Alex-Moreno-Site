@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
+import { SEO } from "@/components/SEO";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -68,6 +69,12 @@ const Login = () => {
 
   return (
     <div className="flex min-h-screen items-center justify-center p-4 bg-gradient-to-br from-background to-secondary/30">
+      <SEO
+        title="Sign In — Alex Moreno Strength & Conditioning"
+        description="Sign in to your Alex Moreno training dashboard. Access your bookings, sessions, and profile."
+        url="https://alexmoreno.space/login"
+        noindex={true}
+      />
       <Card className="w-full max-w-md border-primary/20 shadow-xl backdrop-blur-sm bg-background/80">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold text-center">Sign In</CardTitle>

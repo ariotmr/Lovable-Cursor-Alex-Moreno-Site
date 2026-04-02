@@ -117,6 +117,7 @@ const Navbar = () => {
         <div className="hidden items-center gap-8 md:flex">
           {[
             ["Courses", "/courses"],
+            ["FAQ", "faq"],
             ["Booking", "book-session"],
             ["Inquiry", "contact"],
             ["About", "trust"],

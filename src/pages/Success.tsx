@@ -6,7 +6,7 @@ import { Separator } from "@/components/ui/separator";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { motion } from "framer-motion";
-
+import { SEO } from "@/components/SEO";
 interface SessionData {
   id: string;
   customer_details: {
@@ -84,6 +84,11 @@ const Success = () => {
 
   return (
     <div className="min-h-screen bg-[#0b1120] text-slate-200 selection:bg-orange-500/30">
+      <SEO
+        title="Purchase Confirmed — Alex Moreno"
+        description="Your transformation plan purchase has been confirmed. Welcome to your journey."
+        noindex={true}
+      />
       <Navbar />
       
       <main className="container mx-auto px-4 pt-32 pb-20">

@@ -1,20 +1,52 @@
+# =============================================
+# Alex Moreno — Strength & Conditioning
+# https://alexmoreno.space
+# =============================================
+
+# Traditional Search Engines
 User-agent: Googlebot
 Allow: /
 
 User-agent: Bingbot
 Allow: /
 
+# Social Media Crawlers
 User-agent: Twitterbot
 Allow: /
 
 User-agent: facebookexternalhit
 Allow: /
 
+User-agent: LinkedInBot
+Allow: /
+
+# AI / Generative Engine Crawlers (GEO)
+User-agent: GPTBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Bytespider
+Allow: /
+
+# Default: Allow all bots, block private routes
 User-agent: *
 Allow: /
 Disallow: /admin/
 Disallow: /user/
 Disallow: /success
 Disallow: /profile
+Disallow: /login
 
+# Sitemap
 Sitemap: https://alexmoreno.space/sitemap.xml
