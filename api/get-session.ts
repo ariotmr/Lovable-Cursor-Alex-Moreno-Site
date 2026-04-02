@@ -37,7 +37,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }))
     });
   } catch (err: unknown) {
-    const error = err as any;
+    const error = err as Error & { statusCode?: number };
     console.error('Stripe retrieval error:', error);
     return res.status(error.statusCode || 500).json({ message: error.message || "Internal server error" });
   }

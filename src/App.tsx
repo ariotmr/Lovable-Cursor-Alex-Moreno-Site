@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
@@ -22,8 +23,9 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <HelmetProvider>
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
+    <Sentry.ErrorBoundary fallback={<div className="min-h-screen bg-[#0b1120] text-white flex items-center justify-center p-4">An unexpected error occurred. Please refresh the page or contact support.</div>}>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
       <Toaster />
       <Sonner />
       <BrowserRouter>
@@ -86,6 +88,7 @@ const App = () => (
       <Analytics />
     </TooltipProvider>
   </QueryClientProvider>
+  </Sentry.ErrorBoundary>
   </HelmetProvider>
 );
 

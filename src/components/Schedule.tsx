@@ -1,7 +1,4 @@
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { toast } from "@/hooks/use-toast";
 import { MapPin, TreePine } from "lucide-react";
 import { format, startOfToday } from "date-fns";
 import * as React from "react";

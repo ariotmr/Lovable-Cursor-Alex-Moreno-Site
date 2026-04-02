@@ -2,6 +2,9 @@ import { useEffect, useState } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import { Check } from "lucide-react";
 import { SEO } from "@/components/SEO";
+import { useRef } from "react";
+import html2canvas from "html2canvas";
+import { jsPDF } from "jspdf";
 
 interface SessionData {
   id: string;
@@ -31,6 +34,35 @@ const Success = () => {
   const [session, setSession] = useState<SessionData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const receiptRef = useRef<HTMLDivElement>(null);
+
+  const handleDownloadPDF = async () => {
+    if (!receiptRef.current || !session) return;
+    
+    try {
+      const element = receiptRef.current;
+      const canvas = await html2canvas(element, { 
+        scale: 2, 
+        useCORS: true,
+        backgroundColor: "#0b1120"
+      });
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: "a4",
+      });
+      
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      
+      // Ensure it doesn't span multiple pages awkwardly, but for this size it's fine.
+      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+      pdf.save(`receipt-${session.id.slice(-10).toUpperCase()}.pdf`);
+    } catch (error) {
+      console.error("Failed to generate PDF", error);
+    }
+  };
 
   useEffect(() => {
     if (!sessionId) {
@@ -100,7 +132,7 @@ const Success = () => {
         </p>
 
         {/* Receipt Card */}
-        <div className="bg-slate-800/40 backdrop-blur-xl border border-white/10 rounded-[2rem] overflow-hidden shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)] mb-8">
+        <div ref={receiptRef} className="bg-slate-800/40 backdrop-blur-xl border border-white/10 rounded-[2rem] overflow-hidden shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)] mb-8">
           <div className="p-8 border-b border-white/10 border-dashed relative">
             <div className="absolute -bottom-2 -left-2 w-4 h-4 bg-[#0b1120] rounded-full" />
             <div className="absolute -bottom-2 -right-2 w-4 h-4 bg-[#0b1120] rounded-full" />
@@ -167,6 +199,7 @@ const Success = () => {
           </Link>
           <button 
             type="button"
+            onClick={handleDownloadPDF}
             className="block w-full p-5 rounded-2xl text-center font-bold font-outfit text-[#94a3b8] bg-transparent border border-white/10 hover:border-[#94a3b8] hover:text-white transition-all"
           >
             Download PDF Receipt

@@ -1,3 +1,33 @@
 {
-  "devCommand": "npm run framework-dev"
+  "devCommand": "npm run framework-dev",
+  "redirects": [
+    {
+      "source": "/(.*)",
+      "has": [
+        {
+          "type": "host",
+          "value": "amoreno.space"
+        }
+      ],
+      "destination": "https://alexmoreno.space/$1",
+      "permanent": true
+    },
+    {
+      "source": "/(.*)",
+      "has": [
+        {
+          "type": "host",
+          "value": "lovable-cursor-alex-moreno-site-nes143m13.vercel.app"
+        }
+      ],
+      "destination": "https://alexmoreno.space/$1",
+      "permanent": true
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
 }

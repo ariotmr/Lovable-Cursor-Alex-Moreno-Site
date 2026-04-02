@@ -231,6 +231,7 @@ const Courses = () => {
                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-primary/20 via-transparent to-transparent opacity-50" />
                        <div className="relative space-y-1">
                           <DialogTitle className="text-2xl font-bold font-heading">{course.title}</DialogTitle>
+                          <DialogDescription className="sr-only">{course.description}</DialogDescription>
                           <div className="flex items-center gap-4 text-sm font-medium text-primary">
                             <span className="flex items-center gap-1.5"><Clock className="h-4 w-4" /> {course.duration}</span>
                             <span className="flex items-center gap-1.5"><Trophy className="h-4 w-4" /> Certification Included</span>
