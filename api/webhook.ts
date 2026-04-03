@@ -3,9 +3,7 @@ import Stripe from 'stripe';
 import { createClient } from '@supabase/supabase-js';
 
 // Initialize Stripe
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
-  apiVersion: '2023-10-16', // or your specific version
-});
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
 
 // Initialize Supabase with Service Role to bypass RLS for server-side updates
 const supabaseAdmin = createClient(
@@ -52,28 +50,65 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   // Handle the checkout.session.completed event
   if (event.type === 'checkout.session.completed') {
-    const session = event.data.object as Stripe.Checkout.Session;
+    const rawSession = event.data.object as Stripe.Checkout.Session;
+    
+    // Expand the session to get payment details (last4, etc.)
+    const session = await stripe.checkout.sessions.retrieve(rawSession.id, {
+      expand: ['payment_intent', 'payment_intent.latest_charge'],
+    });
     
     // 1. Get the customer email from the successful transaction
     const customerEmail = session.customer_details?.email || session.metadata?.email;
+    const firstName = session.metadata?.firstName || '';
+    const lastName = session.metadata?.lastName || '';
+    const organization = session.metadata?.organization || '';
+    const reason = session.metadata?.reason || '';
+    const planType = session.metadata?.planType || '';
+
+    // Extract last4 from the expanded payment_intent -> latest_charge
+    const paymentIntent = session.payment_intent as Stripe.PaymentIntent | null;
+    const latestCharge = paymentIntent?.latest_charge as Stripe.Charge | null;
+    const last4 = latestCharge?.payment_method_details?.card?.last4 || null;
 
     if (customerEmail && process.env.SUPABASE_SERVICE_ROLE_KEY) {
-      console.log(`Payment successful for: ${customerEmail}. Upgrading to Client...`);
+      console.log(`Payment successful for: ${customerEmail}. Upgrading to Client and recording payment...`);
 
       // 2. Identify and upgrade the user role in the 'profiles' table securely
-      const { data, error } = await supabaseAdmin
+      const { data: profileData, error: profileError } = await supabaseAdmin
         .from('profiles')
         .update({ role: 'client' })
         .eq('email', customerEmail)
         .select();
 
-      if (error) {
-        console.error("Supabase role upgrade failed:", error);
+      if (profileError) {
+        console.error("Supabase role upgrade failed:", profileError);
       } else {
         console.log(`Successfully upgraded profile for ${customerEmail}`);
       }
       
-      // Optional: Log receipt/payment details somewhere else, or notify n8n natively from here 
+      // 3. Record the payment in the `payments` table
+      const { error: paymentError } = await supabaseAdmin
+        .from('payments')
+        .insert({
+          first_name: firstName,
+          last_name: lastName,
+          email: customerEmail,
+          organization: organization,
+          reason: reason,
+          plan_type: planType,
+          amount: session.amount_total,
+          currency: session.currency,
+          stripe_session_id: session.id,
+          last4: last4,
+          status: session.payment_status,
+        });
+
+      if (paymentError) {
+        console.error("Supabase payment record failed:", paymentError);
+      } else {
+        console.log(`Successfully recorded payment for ${customerEmail} in Supabase`);
+      }
+      
     } else {
       console.warn("No customer email found in checkout session or missing SUPABASE_SERVICE_ROLE_KEY.");
     }
