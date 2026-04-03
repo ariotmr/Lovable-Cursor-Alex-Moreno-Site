@@ -59,26 +59,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     
     // 1. Get the customer email from the successful transaction
     const customerEmail = session.customer_details?.email || session.metadata?.email;
-    const firstName = session.metadata?.firstName || '';
-    const lastName = session.metadata?.lastName || '';
-    const organization = session.metadata?.organization || '';
-    const reason = session.metadata?.reason || '';
-    const planType = session.metadata?.planType || '';
-
-    // Extract last4 from the expanded payment_intent -> latest_charge
-    const paymentIntent = session.payment_intent as Stripe.PaymentIntent | null;
-    const latestCharge = paymentIntent?.latest_charge as Stripe.Charge | null;
-    const last4 = latestCharge?.payment_method_details?.card?.last4 || null;
-
     if (customerEmail && process.env.SUPABASE_SERVICE_ROLE_KEY) {
-      console.log(`Payment successful for: ${customerEmail}. Upgrading to Client and recording payment...`);
+      console.log(`Payment successful for: ${customerEmail}. Upgrading to Client...`);
 
       // 2. Identify and upgrade the user role in the 'profiles' table securely
-      const { data: profileData, error: profileError } = await supabaseAdmin
+      const { error: profileError } = await supabaseAdmin
         .from('profiles')
         .update({ role: 'client' })
-        .eq('email', customerEmail)
-        .select();
+        .eq('email', customerEmail);
 
       if (profileError) {
         console.error("Supabase role upgrade failed:", profileError);
@@ -86,29 +74,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         console.log(`Successfully upgraded profile for ${customerEmail}`);
       }
       
-      // 3. Record the payment in the `payments` table
-      const { error: paymentError } = await supabaseAdmin
-        .from('payments')
-        .insert({
-          first_name: firstName,
-          last_name: lastName,
-          email: customerEmail,
-          organization: organization,
-          reason: reason,
-          plan_type: planType,
-          amount: session.amount_total,
-          currency: session.currency,
-          stripe_session_id: session.id,
-          last4: last4,
-          status: session.payment_status,
-        });
-
-      if (paymentError) {
-        console.error("Supabase payment record failed:", paymentError);
-      } else {
-        console.log(`Successfully recorded payment for ${customerEmail} in Supabase`);
-      }
-      
+      // Note: Transaction record logging to 'payments' is handled by n8n.
     } else {
       console.warn("No customer email found in checkout session or missing SUPABASE_SERVICE_ROLE_KEY.");
     }
